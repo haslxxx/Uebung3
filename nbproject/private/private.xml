@@ -3,10 +3,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/xampp/htdocs/Projekte/Uebung3/services/Database.php</file>
             <file>file:/C:/xampp/htdocs/Projekte/Uebung3/controller/ListController.php</file>
             <file>file:/C:/xampp/htdocs/Projekte/Uebung3/config/config.php</file>
-            <file>file:/C:/xampp/htdocs/Projekte/Uebung3/models/DebugHelper.php</file>
+            <file>file:/C:/xampp/htdocs/Projekte/Uebung3/views/JsonView.php</file>
+            <file>file:/C:/xampp/htdocs/Projekte/Uebung3/models/ListModel.php</file>
         </group>
     </open-files>
 </project-private>

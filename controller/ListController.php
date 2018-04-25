@@ -7,41 +7,26 @@
 class ListController {
    
     private $jsonView; //AusgabeView ... für ganz unten
-//    private $dh;
-    
     //my GETparams
     private $projektebene; 
     private $parentID;
+    
+    private $nextEbene;
    
     public function __construct() {
         $this->jsonView = new JsonView();  // Wir machen mal ein ausgabeobjekt 
-/*
-        $dh = new DebugHelper();            // Mein kleiner meldungs-dienst
-        $dh->msg("Jetzt geht's lohooos  :-)");
- * ist zwar nett gedacht .. müsste man aber jetzt in jedermethode wieder neu instanzieren  :-( 
- * DENKFEHLER ??
- */
     }
     
     // Get RequestParameters
     public function route(){
-        if ($this->fetchRequestParams() == true) { // Parameter holen --> ?? fehlerfreie parameter
-            $listGenerator = new ListModel(); 
-            $data = $listGenerator->listProjects($this->projektebene,$this->parentID); // DER holt die daten ....
-            //DEBUG---------------
-            $cnt = count($data);
-            echo ("\n");
-            for ($xi=0;$xi<$cnt;$xi++) {
-                echo (implode (" / " ,$data[$xi]) . "\n");
-                //echo (strval($data[$xi]) . "\n");
-            }
-
-            $this->formatAndDisplayData($data); // DER gibt sie aus
-        } else {
-            // ############################# FIXME hier kommt die mekkerecke (im endeffekt als jason
-            echo ("\nParameterfehler:   listtype=projekts|floors|rooms|devices|sensors & parentID:0...n");
+        if ($this->fetchRequestParams() == false) {
+            $this->projektebene = "PROJECTS";   // back to the roots
         }
-     }
+
+        $listGenerator = new ListModel(); 
+        $data = $listGenerator->listProjects($this->projektebene,$this->parentID); // DER holt die daten ....
+        $this->formatAndDisplayData($data); // DER gibt sie aus
+    }
 
     private function fetchRequestParams() {
        //GET parameter holen 
@@ -60,23 +45,49 @@ class ListController {
         if ($paramNumOf != 2) { // Anzahl OK ?
             $requParOK = false;
         }
-        // inhalt OK ? Hier testen wir noch auf listtype=projekts|floors|rooms|devices|sensors  und parentID formal valide
-        //######################### FIXME fehlt noch
-        
+        // inhalt OK ? Hier könnten wir noch auf listtype=projekts|floors|rooms|devices|sensors  und parentID formal valide testen
+
         return $requParOK;        
     }
 
     
     private function formatAndDisplayData($data){        
         $projectsList = array();
+        $link = "";
         
+        switch ($this->projektebene) {
+            case "PROJECTS":
+                $this->nextEbene = "FLOORS";
+                break;
+            case "FLOORS":
+                $this->nextEbene = "ROOMS";
+                ;
+            case "ROOMS":
+                $this->nextEbene = "DEVICES";
+                break;
+            case "DEVICES":
+                $this->nextEbene = "SENSORS";
+                break;
+            case "SENSORS":
+                $this->nextEbene = "lastLevel";
+                break;
+            default:
+                $this->nextebene = "PROJECTS";
+        }
+ //echo ($this->projektebene . "\n" . $this->nextEbene . "\n");
+     
         foreach($data as $dbEntry){
-            $projectsList[] = array(
-                "name"=> $dbEntry['name'], 
-                // Bei der URL ist noch irgendein denkfehler drin .... müsste ja die nchstniederere ebene sein
-                // FIXME #########################################
-                "url"=> "http://localhost/Uebung3/index.php?listtype=" . $this->projektebene . "&parentid=" . $dbEntry['id']
-            );
+            if ($this->nextEbene != "lastLevel") {
+                $projectsList[] = array(
+                    "name"=> $dbEntry['name'], 
+                    "url"=> "http://localhost/Uebung3/index.php?listtype=" . $this->nextEbene . "&parentid=" . $dbEntry['id']
+                );
+            } else {
+                $projectsList[] = array(
+                    "name"=> $dbEntry['name'], 
+                    "url"=> ""
+                );
+            }
         }
         $outputData = array (
             "listtype" => $this->projektebene,
@@ -84,6 +95,4 @@ class ListController {
         );
         $this->jsonView->streamOutput($outputData);
     }
-    
-
 }

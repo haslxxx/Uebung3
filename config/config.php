@@ -6,7 +6,6 @@ include "services/Database.php";
 include "models/ListModel.php";
 include "views/JsonView.php";
 
-include "models/DebugHelper.php";
 
 define ("DBHost", "localhost");
 define ("DBName", "uebung3_db");

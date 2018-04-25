@@ -15,7 +15,7 @@ class Database extends PDO{
     public function query( $sql){
         $resultTable = array();
         //DEBUG ----------------------------
-        echo ("\nSQL2: " . $sql);
+        //echo ("\nSQL2: " . $sql);
         try{
             foreach ($this->dbHandler->query($sql) as $row) {
                 $resultTable[] = $row;
