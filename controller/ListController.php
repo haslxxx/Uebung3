@@ -8,23 +8,21 @@ class ListController {
    
     private $jsonView; //AusgabeView ... für ganz unten
     //my GETparams
-    private $projektebene; 
+    private $currentLevel; 
     private $parentID;
-    
-    private $nextEbene;
    
     public function __construct() {
-        $this->jsonView = new JsonView();  // Wir machen mal ein ausgabeobjekt 
+        $this->jsonView = new JsonView();  // Wir machen mal ein ausgabeobjekt ... kann nie schaden
     }
     
     // Get RequestParameters
     public function route(){
         if ($this->fetchRequestParams() == false) {
-            $this->projektebene = "PROJECTS";   // back to the roots
+            $this->currentLevel = "PROJECTS";   // back to the roots
         }
 
         $listGenerator = new ListModel(); 
-        $data = $listGenerator->listProjects($this->projektebene,$this->parentID); // DER holt die daten ....
+        $data = $listGenerator->queryCurrentLevelData($this->currentLevel,$this->parentID); // DER holt die daten ....
         $this->formatAndDisplayData($data); // DER gibt sie aus
     }
 
@@ -33,7 +31,7 @@ class ListController {
         $paramNumOf = 0;
         if( isset($_GET['listtype']) ){
             $paramNumOf = 1;
-            $this->projektebene = strtoupper($_GET['listtype']); // uppercase aus dem parameter machen und abspeichern in lokale variable!!
+            $this->currentLevel = strtoupper($_GET['listtype']); // uppercase aus dem parameter machen und abspeichern in lokale variable!!
         }
         if (isset ($_GET['parentid'])) {
             $this->parentID = strtoupper($_GET['parentid']);
@@ -50,37 +48,16 @@ class ListController {
         return $requParOK;        
     }
 
-    
     private function formatAndDisplayData($data){        
         $projectsList = array();
-        $link = "";
-        
-        switch ($this->projektebene) {
-            case "PROJECTS":
-                $this->nextEbene = "FLOORS";
-                break;
-            case "FLOORS":
-                $this->nextEbene = "ROOMS";
-                ;
-            case "ROOMS":
-                $this->nextEbene = "DEVICES";
-                break;
-            case "DEVICES":
-                $this->nextEbene = "SENSORS";
-                break;
-            case "SENSORS":
-                $this->nextEbene = "lastLevel";
-                break;
-            default:
-                $this->nextebene = "PROJECTS";
-        }
- //echo ($this->projektebene . "\n" . $this->nextEbene . "\n");
-     
+        //$link = "";
+        $nextLevel = $this->getNextLevel($this->currentLevel);
+
         foreach($data as $dbEntry){
-            if ($this->nextEbene != "lastLevel") {
+            if ($nextLevel != "lastLevel") {
                 $projectsList[] = array(
                     "name"=> $dbEntry['name'], 
-                    "url"=> "http://localhost/Uebung3/index.php?listtype=" . $this->nextEbene . "&parentid=" . $dbEntry['id']
+                    "url"=> "http://localhost/Uebung3/index.php?listtype=" . $nextLevel . "&parentid=" . $dbEntry['id']
                 );
             } else {
                 $projectsList[] = array(
@@ -90,9 +67,35 @@ class ListController {
             }
         }
         $outputData = array (
-            "listtype" => $this->projektebene,
+            "listtype" => $this->currentLevel,
             "items" => $projectsList
         );
         $this->jsonView->streamOutput($outputData);
     }
+ 
+    private function getNextLevel($currentLevel) {
+        $nextDataModelLevel = "";
+        switch ($currentLevel) {
+            case "PROJECTS":
+                $nextDataModelLevel = "FLOORS";
+                break;
+            case "FLOORS":
+                $nextDataModelLevel = "ROOMS";
+                ;
+            case "ROOMS":
+                $nextDataModelLevel = "DEVICES";
+                break;
+            case "DEVICES":
+                $nextDataModelLevel = "SENSORS";
+                break;
+            case "SENSORS":
+                $nextDataModelLevel = "lastLevel";
+                break;
+            default:
+                $nextDataModelLevel = "PROJECTS";
+        }
+ //echo ($this->projektebene . "\n" . $nextEbene . "\n");
+        return $nextDataModelLevel;
+    }
+
 }
